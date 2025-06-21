@@ -1,13 +1,13 @@
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// 1. Register controllers (in addition to Swagger)
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// 2. Enable Swagger in Dev
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -16,22 +16,26 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+// (Optional) if you’re going to add [Authorize] later
+// app.UseAuthorization();
 
+// 3. Map all controllers
+app.MapControllers();
+
+// 4. (You can still keep your minimal endpoint too if you like)
 app.MapGet("/weatherforecast", () =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
+    var summaries = new[] {
+        "Freezing", "Bracing", "Chilly", "Cool",
+        "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+    };
+    return Enumerable.Range(1, 5).Select(index =>
+        new WeatherForecast(
             DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
             Random.Shared.Next(-20, 55),
             summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
+        )
+    ).ToArray();
 })
 .WithName("GetWeatherForecast")
 .WithOpenApi();
